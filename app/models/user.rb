@@ -1,8 +1,11 @@
 class User < ActiveRecord::Base
-  devise :token_authenticatable, :database_authenticatable, :registerable,
-    :recoverable, :rememberable, :trackable, :validatable
+  devise  :database_authenticatable, :registerable,
+          :recoverable, :rememberable, :trackable, :validatable
+          # :token_authenticatable
 
   has_many :task_lists, foreign_key: :owner_id
+
+  before_save :ensure_authentication_token
 
   after_create :create_task_list
 
@@ -16,5 +19,24 @@ class User < ActiveRecord::Base
 
   def first_list
     task_lists.first
+  end
+
+  def ensure_authentication_token
+    if authentication_token.blank?
+      self.authentication_token = generate_authentication_token
+    end
+  end
+
+  def reset_authentication_token!
+    self.update_attribute(:authentication_token, generate_authentication_token)
+  end
+
+  private
+
+  def generate_authentication_token
+    loop do
+      token = Devise.friendly_token
+      break token unless User.where(authentication_token: token).first
+    end
   end
 end
