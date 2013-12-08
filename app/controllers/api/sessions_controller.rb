@@ -1,4 +1,5 @@
 class Api::SessionsController < Devise::SessionsController
+  before_action :authenticate_user_from_token!
   before_action :warden_authenticate
 
   def create
@@ -17,5 +18,17 @@ class Api::SessionsController < Devise::SessionsController
 
   def warden_authenticate
     self.resource = warden.authenticate!(auth_options)
+  end
+
+  def authenticate_user_from_token!
+    auth_token = params[:auth_token].presence
+    user       = auth_token && User.find_by_authentication_token(auth_token)
+
+    # Notice how we use Devise.secure_compare to compare the token
+    # in the database with the token given in the params, mitigating
+    # timing attacks.
+    if user && Devise.secure_compare(user.authentication_token, auth_token)
+      sign_in user, store: false
+    end
   end
 end
