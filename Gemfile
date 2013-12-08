@@ -15,6 +15,7 @@ gem 'slim'
 gem 'active_model_serializers'
 gem 'jquery-ui-rails'
 gem 'acts_as_list'
+gem 'figaro'
 
 group :doc do
   gem 'sdoc', require: false
