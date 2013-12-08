@@ -22,13 +22,13 @@ class Api::SessionsController < Devise::SessionsController
 
   def authenticate_user_from_token!
     auth_token = params[:auth_token].presence
-    user       = auth_token && User.find_by_authentication_token(auth_token)
+    self.resource = auth_token && User.where(authentication_token: auth_token).first
 
     # Notice how we use Devise.secure_compare to compare the token
     # in the database with the token given in the params, mitigating
     # timing attacks.
-    if user && Devise.secure_compare(user.authentication_token, auth_token)
-      sign_in user, store: false
+    if self.resource && Devise.secure_compare(self.resource.authentication_token, auth_token)
+      sign_in self.resource, store: false
     end
   end
 end
